@@ -1,22 +1,11 @@
 <?php
     header('Access-Control-Allow-Origin: *');
-    include "controller/config.php"; // inclui o arquivo conecta.php
-    include "classes/users.php";
-
-
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     
-        $q = $_REQUEST["id"];
+    include "classes/Users.php";
+    include "controller/Progress.php";
+    include "classes/Rest.php"; 
 
-        if($q=="all"){
-            $usuarios = new Users($conexao);
-            $pessoas=$usuarios->listarUsuarios();
-            echo json_encode($pessoas);
-        }else{
-            $usuarios = new Users($conexao);
-            $umFulano=$usuarios->buscaPorId($q);
-            echo json_encode($umFulano);
-        }
-    }
-
-?>
+    if (isset($_REQUEST) && !empty($_REQUEST)) {
+		$rest = new Rest($_REQUEST);
+		echo $rest->run();
+	}
