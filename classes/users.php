@@ -1,4 +1,6 @@
 <?php
+	include "enviaEmail/envia_email.php"; 
+
 class Users
 {
     private $pgadmin;
@@ -121,7 +123,6 @@ class Users
 
     function addUser(){
 
-        // $id=$_POST['id'];
         $username=$_POST['username'];
         $name=$_POST['name'];
         $email=$_POST['email'];
@@ -134,18 +135,24 @@ class Users
             throw new \Exception('Invalid name format');
         }else{
             if(self::verifyOnlyEmail($email)){    
-
-                $stmt = $this->pgadmin->prepare("INSERT INTO Users (username,name,email,password,timestamp) VALUES (:username,:name,:email,:password,:timestamp)");
-                // $stmt->bindParam(':id',         $id);
+                $stmt = $this->pgadmin->prepare("INSERT INTO Users (username,name,email,password,timestamp,verificacao) VALUES (:username,:name,:email,:password,:timestamp,false)");
                 $stmt->bindParam(':username',   $username);
                 $stmt->bindParam(':name',       $name);
                 $stmt->bindParam(':email',      $email);
                 $stmt->bindParam(':password',   $password);
                 $stmt->bindParam(':timestamp',  $timestamp);
+                // $stmt->bindParam(':verificacao',  'false');
                 $stmt->execute();
+                enviaEmail($email);
                 return true;
             }else throw new \Exception('Email utilizado');
         }       
+    }
+
+    function validaEmail($email){
+        $stmt = $this->pgadmin->prepare("UPDATE Users SET  verificacao=true WHERE email= '$email';");
+        $stmt->execute();
+        return true;
     }
 }
 
