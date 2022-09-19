@@ -9,42 +9,51 @@
 
             // $conexao=criaConexao();
             // $usuarios = new Users($conexao);
+
+            $request_body = file_get_contents('php://input');
+            $data = json_decode($request_body, true);
+            // $item = $data['item']; // Works!
+
+            // if(isset($_POST['email']) && isset($_POST['password'])){
+
             $usuarios = new Users();
-            $linha=$usuarios->buscaPorEmail($_POST['email']);
-            
-            if ($_POST['email'] == $linha->{'email'} && $_POST['password'] == $linha->{'password'}) {
-                //Header Token
-                $header = [
-                    'typ' => 'JWT',
-                    'alg' => 'HS256'
-                ];
+            $linha=$usuarios->buscaPorEmail($data['email']);
+            if($linha){
+                
+                if ($data['email'] == $linha->{'email'} && $data['password'] == $linha->{'password'}) {
+                    if($linha->{'verificacao'}==true){
+                        //Header Token
+                        $header = [
+                            'typ' => 'JWT',
+                            'alg' => 'HS256'
+                        ];
 
-                //Payload - Content
-                $payload = [
-                    'name' => $linha->{'name'},
-                    'email' => $linha->{'email'},
-                ];
+                        //Payload - Content
+                        $payload = [
+                            'name' => $linha->{'name'},
+                            'email' => $linha->{'email'},
+                        ];
 
-                //JSON
-                $header = json_encode($header);
-                $payload = json_encode($payload);
+                        //JSON
+                        $header = json_encode($header);
+                        $payload = json_encode($payload);
 
-                //Base 64
-                $header = self::base64UrlEncode($header);
-                $payload = self::base64UrlEncode($payload);
+                        //Base 64
+                        $header = self::base64UrlEncode($header);
+                        $payload = self::base64UrlEncode($payload);
 
-                //Sign
-                $sign = hash_hmac('sha256', $header . "." . $payload, self::$key, true);
-                $sign = self::base64UrlEncode($sign);
+                        //Sign
+                        $sign = hash_hmac('sha256', $header . "." . $payload, self::$key, true);
+                        $sign = self::base64UrlEncode($sign);
 
-                //Token
-                $token = $header . '.' . $payload . '.' . $sign;
+                        //Token
+                        $token = $header . '.' . $payload . '.' . $sign;
+                        $response = array('token' => $token);
 
-                return $token;
-            }
-            
-            throw new \Exception('Usuario nao autenticado');
-
+                        return $token;
+                    }throw new \Exception('Email ainda nao verificado');
+                }throw new \Exception('Usuario ou senha incorretos');
+            }throw new \Exception('Usuario nao encontrado');
         }
 
         private static function returnExplodeToken(){

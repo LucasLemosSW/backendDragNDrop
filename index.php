@@ -3,6 +3,7 @@
     
     include "classes/Users.php";
     include "controller/Progress.php";
+    include "controller/Scores.php";
     include "classes/Rest.php"; 
 
     if (isset($_REQUEST) && !empty($_REQUEST)) {

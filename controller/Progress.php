@@ -35,6 +35,39 @@
                 }
         }
 
+        function getRanking(){
+
+            if(AuthController::checkAuth()){
+                $linha = new Users();
+                $linha=$linha->buscaPorEmail(AuthController::returnEmail());
+                $id=$linha->{'id'};
+                try {
+                    if(isset($id)){
+                        $query = $this->pgadmin->prepare("SELECT * FROM progress ORDER BY stars DESC;");      
+                        $query->execute();
+                        $stocks = [];
+                        while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
+                        $stocks[] = [
+                            'id' => $row['id_progress'],
+                            'name' => $row['nome'],
+                            'stars' => $row['stars'],
+                        ];
+                        }
+                    }else{
+                        return false;
+                    }
+        
+                    return $stocks;
+                    // return $query->fetchObject();
+                    
+                }catch(PDOException $e) {
+                        echo 'Error: ' . $e->getMessage();
+                    } 
+                }else
+                throw new \Exception('Nao autenticado, impossivel retornar progresso...');
+    
+            }
+
         function getProgress(){
 
             if(AuthController::checkAuth()){
@@ -59,12 +92,29 @@
     
             }
 
-        function updateProgress(){//($money,$stars,$life,$fase_1,$fase_2,$fase_3,$fase_4,$fase_5,$fase_6,$fase_7,$fase_8,$fase_9){
+        function createProgress($email){
+            
+                $linha = new Users();
+                $linha=$linha->buscaPorEmail($email);
+                $id=$linha->{'id'};
+                $nome=$linha->{'name'};
+                $stmt = $this->pgadmin->prepare("INSERT INTO progress (id_progress,nome,money,stars,life,fase_1,fase_2,fase_3,
+                                                fase_4,fase_5,fase_6,fase_7,fase_8,fase_9) 
+                                                VALUES (:id,:nome,100,0,5,0,0,0,0,0,0,0,0,0);");                                                
+                $stmt->bindParam(':id',   $id);
+                $stmt->bindParam(':nome', $nome);
+                $stmt->execute();
+                return true;
+
+        }
+
+        function updateProgress(){
             if(AuthController::checkAuth()){
                 $linha = new Users();
                 $linha=$linha->buscaPorEmail(AuthController::returnEmail());
                 // return $linha->{'id'};
                 $id=$linha->{'id'};
+                $nome=$linha->{'name'};
                 $money=$_POST['money'];
                 $stars=$_POST['stars'];
                 $life=$_POST['life'];

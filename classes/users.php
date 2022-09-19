@@ -123,11 +123,14 @@ class Users
 
     function addUser(){
 
-        $username=$_POST['username'];
-        $name=$_POST['name'];
-        $email=$_POST['email'];
-        $password=$_POST['password'];
-        $timestamp=$_POST['timestamp'];
+        $request_body = file_get_contents('php://input');
+        $data = json_decode($request_body, true);
+
+        $username=$data['username'];
+        $name=$data['name'];
+        $email=$data['email'];
+        $password=$data['password'];
+        $timestamp=$data['timestamp'];
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new \Exception('Invalid email format');
@@ -143,7 +146,9 @@ class Users
                 $stmt->bindParam(':timestamp',  $timestamp);
                 // $stmt->bindParam(':verificacao',  'false');
                 $stmt->execute();
-                enviaEmail($email);
+                $criaProgresso= new Progress();
+                $criaProgresso=$criaProgresso->createProgress($email);
+                // enviaEmail($email);
                 return true;
             }else throw new \Exception('Email utilizado');
         }       
